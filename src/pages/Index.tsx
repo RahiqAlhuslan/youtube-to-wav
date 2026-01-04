@@ -9,11 +9,11 @@ const Index = () => {
         <div className="container py-4 flex items-center gap-3">
           <img 
             src={dogLogo} 
-            alt="Logo" 
-            className="h-8 w-8 grayscale contrast-200"
+            alt="WavDog Logo" 
+            className="h-10 w-10 grayscale contrast-200"
           />
           <h1 className="font-mono text-lg font-bold tracking-tight">
-            YT→WAV
+            WavDog
           </h1>
         </div>
       </header>
@@ -21,8 +21,20 @@ const Index = () => {
       {/* Main Content */}
       <section className="flex-1 flex items-center justify-center px-4">
         <div className="w-full max-w-xl space-y-8 py-16">
+          {/* Hero branding */}
+          <div className="flex items-center gap-4">
+            <img 
+              src={dogLogo} 
+              alt="WavDog Logo" 
+              className="h-16 w-16 md:h-20 md:w-20 grayscale contrast-200"
+            />
+            <span className="font-mono text-5xl md:text-6xl font-bold tracking-tight">
+              WavDog
+            </span>
+          </div>
+          
           <div className="space-y-2">
-            <h2 className="font-mono text-4xl md:text-5xl font-bold tracking-tight leading-tight">
+            <h2 className="font-mono text-3xl md:text-4xl font-bold tracking-tight leading-tight">
               YouTube to WAV
             </h2>
             <p className="text-muted-foreground font-mono text-sm">

@@ -1,13 +1,42 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { ConverterForm } from "@/components/ConverterForm";
 
 const Index = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
-    </div>
+    <main className="min-h-screen bg-background flex flex-col">
+      {/* Header */}
+      <header className="border-b-2 border-foreground">
+        <div className="container py-4">
+          <h1 className="font-mono text-lg font-bold tracking-tight">
+            YT→WAV
+          </h1>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <section className="flex-1 flex items-center justify-center px-4">
+        <div className="w-full max-w-xl space-y-8 py-16">
+          <div className="space-y-2">
+            <h2 className="font-mono text-4xl md:text-5xl font-bold tracking-tight leading-tight">
+              YouTube to WAV
+            </h2>
+            <p className="text-muted-foreground font-mono text-sm">
+              Convert any YouTube video to lossless WAV audio
+            </p>
+          </div>
+
+          <ConverterForm />
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t-2 border-foreground">
+        <div className="container py-4">
+          <p className="font-mono text-xs text-muted-foreground">
+            For personal use only. Respect copyright.
+          </p>
+        </div>
+      </footer>
+    </main>
   );
 };
 

@@ -4,14 +4,14 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Download, Music } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { audioBufferToWav } from "@/lib/wavEncoder";
 
-type ConversionStatus = "idle" | "loading" | "success" | "error";
+type ConversionStatus = "idle" | "loading" | "converting" | "success" | "error";
 
 interface ConversionResult {
   title: string;
-  downloadUrl: string;
+  wavBlob: Blob;
   duration?: string;
-  filesize?: string;
 }
 
 export const ConverterForm = () => {
@@ -33,6 +33,27 @@ export const ConverterForm = () => {
     return null;
   };
 
+  const convertMp3ToWav = async (mp3Url: string): Promise<Blob> => {
+    // Fetch the MP3 file
+    const response = await fetch(mp3Url);
+    if (!response.ok) {
+      throw new Error('Failed to fetch audio file');
+    }
+    
+    const arrayBuffer = await response.arrayBuffer();
+    
+    // Decode the audio
+    const audioContext = new AudioContext();
+    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+    
+    // Convert to WAV
+    const wavBlob = audioBufferToWav(audioBuffer);
+    
+    await audioContext.close();
+    
+    return wavBlob;
+  };
+
   const handleConvert = async () => {
     const videoId = extractVideoId(url.trim());
 
@@ -49,6 +70,7 @@ export const ConverterForm = () => {
     setResult(null);
 
     try {
+      // Step 1: Get MP3 URL from edge function
       const { data, error } = await supabase.functions.invoke('youtube-to-wav', {
         body: { videoId },
       });
@@ -61,17 +83,25 @@ export const ConverterForm = () => {
         throw new Error(data.error);
       }
 
+      // Step 2: Convert MP3 to WAV
+      setStatus("converting");
+      toast({
+        title: "Converting to WAV",
+        description: "Processing audio, please wait...",
+      });
+
+      const wavBlob = await convertMp3ToWav(data.downloadUrl);
+
       setResult({
         title: data.title,
-        downloadUrl: data.downloadUrl,
+        wavBlob,
         duration: data.duration,
-        filesize: data.filesize,
       });
       setStatus("success");
       
       toast({
         title: "Conversion Complete",
-        description: "Your audio file is ready for download",
+        description: "Your WAV file is ready for download",
       });
     } catch (error) {
       console.error('Conversion error:', error);
@@ -85,20 +115,30 @@ export const ConverterForm = () => {
   };
 
   const handleDownload = () => {
-    if (result?.downloadUrl) {
-      window.open(result.downloadUrl, '_blank');
+    if (result?.wavBlob) {
+      const url = URL.createObjectURL(result.wavBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${result.title.replace(/[^a-zA-Z0-9]/g, '_')}.wav`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
       toast({
         title: "Download Started",
-        description: "Your file will download shortly",
+        description: "Your WAV file is downloading",
       });
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && status !== "loading") {
+    if (e.key === "Enter" && status !== "loading" && status !== "converting") {
       handleConvert();
     }
   };
+
+  const isProcessing = status === "loading" || status === "converting";
 
   return (
     <div className="w-full max-w-xl space-y-6">
@@ -111,14 +151,19 @@ export const ConverterForm = () => {
             onChange={(e) => setUrl(e.target.value)}
             onKeyDown={handleKeyDown}
             className="h-14 border-2 border-foreground bg-background px-4 font-mono text-sm placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-foreground"
-            disabled={status === "loading"}
+            disabled={isProcessing}
           />
           <Button
             onClick={handleConvert}
-            disabled={!url.trim() || status === "loading"}
+            disabled={!url.trim() || isProcessing}
             className="h-14 min-w-[140px] border-2 border-foreground bg-foreground text-background font-mono text-sm uppercase tracking-wider hover:bg-background hover:text-foreground transition-colors"
           >
             {status === "loading" ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Fetching
+              </>
+            ) : status === "converting" ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Converting
@@ -141,7 +186,7 @@ export const ConverterForm = () => {
             <div className="flex-1 min-w-0">
               <p className="font-mono text-sm truncate">{result.title}</p>
               <p className="text-xs text-muted-foreground font-mono">
-                MP3 Audio {result.duration && `• ${result.duration}`}
+                WAV Audio {result.duration && `• ${result.duration}`}
               </p>
             </div>
           </div>
@@ -151,7 +196,7 @@ export const ConverterForm = () => {
             className="w-full h-12 border-2 border-foreground bg-foreground text-background font-mono text-sm uppercase tracking-wider hover:bg-background hover:text-foreground transition-colors"
           >
             <Download className="mr-2 h-4 w-4" />
-            Download Audio
+            Download WAV
           </Button>
         </div>
       )}

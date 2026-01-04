@@ -16,6 +16,7 @@ export default {
       fontFamily: {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
         mono: ["var(--font-mono)", "monospace"],
+        pixel: ["'Press Start 2P'", "cursive"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -66,10 +67,15 @@ export default {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        "walk": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-4px)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "walk": "walk 0.3s ease-in-out infinite",
       },
     },
   },

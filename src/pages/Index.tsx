@@ -1,11 +1,17 @@
 import { ConverterForm } from "@/components/ConverterForm";
+import dogLogo from "@/assets/dog-logo-pixel.png";
 
 const Index = () => {
   return (
     <main className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="border-b-2 border-foreground">
-        <div className="container py-4">
+        <div className="container py-4 flex items-center gap-3">
+          <img 
+            src={dogLogo} 
+            alt="Logo" 
+            className="h-8 w-8 grayscale contrast-200"
+          />
           <h1 className="font-mono text-lg font-bold tracking-tight">
             YT→WAV
           </h1>

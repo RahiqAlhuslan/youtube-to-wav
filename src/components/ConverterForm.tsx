@@ -191,13 +191,26 @@ export const ConverterForm = () => {
             </div>
           </div>
           
-          <Button
-            onClick={handleDownload}
-            className="w-full h-12 border-2 border-foreground bg-foreground text-background font-mono text-sm uppercase tracking-wider hover:bg-background hover:text-foreground transition-colors"
-          >
-            <Download className="mr-2 h-4 w-4" />
-            Download WAV
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              onClick={handleDownload}
+              className="flex-1 h-12 border-2 border-foreground bg-foreground text-background font-mono text-sm uppercase tracking-wider hover:bg-background hover:text-foreground transition-colors"
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Download WAV
+            </Button>
+            <Button
+              onClick={() => {
+                setUrl("");
+                setResult(null);
+                setStatus("idle");
+              }}
+              variant="outline"
+              className="h-12 border-2 border-foreground bg-background text-foreground font-mono text-sm uppercase tracking-wider hover:bg-foreground hover:text-background transition-colors"
+            >
+              Convert Next
+            </Button>
+          </div>
         </div>
       )}
     </div>

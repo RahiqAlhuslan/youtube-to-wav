@@ -3,13 +3,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Download, Music } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 type ConversionStatus = "idle" | "loading" | "success" | "error";
+
+interface ConversionResult {
+  title: string;
+  downloadUrl: string;
+  duration?: string;
+  filesize?: string;
+}
 
 export const ConverterForm = () => {
   const [url, setUrl] = useState("");
   const [status, setStatus] = useState<ConversionStatus>("idle");
-  const [videoTitle, setVideoTitle] = useState("");
+  const [result, setResult] = useState<ConversionResult | null>(null);
   const { toast } = useToast();
 
   const extractVideoId = (url: string): string | null => {
@@ -38,36 +46,52 @@ export const ConverterForm = () => {
     }
 
     setStatus("loading");
-    setVideoTitle("");
+    setResult(null);
 
-    // Simulating conversion process for demo
-    // In production, this would call an edge function
     try {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      
-      setVideoTitle("Sample Video Title");
+      const { data, error } = await supabase.functions.invoke('youtube-to-wav', {
+        body: { videoId },
+      });
+
+      if (error) {
+        throw new Error(error.message || 'Conversion failed');
+      }
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      setResult({
+        title: data.title,
+        downloadUrl: data.downloadUrl,
+        duration: data.duration,
+        filesize: data.filesize,
+      });
       setStatus("success");
       
       toast({
         title: "Conversion Complete",
-        description: "Your WAV file is ready for download",
+        description: "Your audio file is ready for download",
       });
     } catch (error) {
+      console.error('Conversion error:', error);
       setStatus("error");
       toast({
         title: "Conversion Failed",
-        description: "Unable to convert video. Please try again.",
+        description: error instanceof Error ? error.message : "Unable to convert video. Please try again.",
         variant: "destructive",
       });
     }
   };
 
   const handleDownload = () => {
-    toast({
-      title: "Download Started",
-      description: "Your WAV file will download shortly",
-    });
-    // In production, this would trigger actual file download
+    if (result?.downloadUrl) {
+      window.open(result.downloadUrl, '_blank');
+      toast({
+        title: "Download Started",
+        description: "Your file will download shortly",
+      });
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -110,13 +134,15 @@ export const ConverterForm = () => {
         </p>
       </div>
 
-      {status === "success" && (
+      {status === "success" && result && (
         <div className="animate-slide-up border-2 border-foreground p-6 space-y-4">
           <div className="flex items-center gap-3">
             <Music className="h-5 w-5" />
             <div className="flex-1 min-w-0">
-              <p className="font-mono text-sm truncate">{videoTitle}</p>
-              <p className="text-xs text-muted-foreground font-mono">WAV • Lossless Audio</p>
+              <p className="font-mono text-sm truncate">{result.title}</p>
+              <p className="text-xs text-muted-foreground font-mono">
+                MP3 Audio {result.duration && `• ${result.duration}`}
+              </p>
             </div>
           </div>
           
@@ -125,7 +151,7 @@ export const ConverterForm = () => {
             className="w-full h-12 border-2 border-foreground bg-foreground text-background font-mono text-sm uppercase tracking-wider hover:bg-background hover:text-foreground transition-colors"
           >
             <Download className="mr-2 h-4 w-4" />
-            Download WAV
+            Download Audio
           </Button>
         </div>
       )}

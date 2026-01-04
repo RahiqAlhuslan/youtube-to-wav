@@ -1,1 +1,4 @@
 project_id = "avkbsbdqjleyliwkhjoc"
+
+[functions.youtube-to-wav]
+verify_jwt = false
